@@ -1,8 +1,10 @@
 package com.example.sentivibe;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,7 +14,12 @@ import com.example.sentivibe.data.RetrofitClient;
 import com.example.sentivibe.data.SentimentModels.ScoreRequest;
 import com.example.sentivibe.data.SentimentModels.SentimentResponse;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.data.*;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +32,10 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private EditText inputText;
+    private TextInputEditText inputText;
+    private Button btnAnalyze;
     private TextView txtResult;
+    private ProgressBar progressBar;
     private LineChart lineChart;
 
     private final List<Entry> entries = new ArrayList<>();
@@ -36,52 +45,76 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         inputText = findViewById(R.id.inputText);
-        Button btnAnalyze = findViewById(R.id.btnAnalyze);
+        btnAnalyze = findViewById(R.id.btnAnalyze);
         txtResult = findViewById(R.id.txtResult);
+        progressBar = findViewById(R.id.progressBar);
         lineChart = findViewById(R.id.lineChart);
 
         setupChart();
 
         btnAnalyze.setOnClickListener(view -> {
             String text = inputText.getText().toString().trim();
-            if (!text.isEmpty()) analyzeText(text);
+            if (!text.isEmpty()) {
+                analyzeText(text);
+            }
         });
     }
 
     private void setupChart() {
-        LineDataSet ds = new LineDataSet(entries, "Polarity");
-        ds.setDrawCircles(true);
-        LineData ld = new LineData(ds);
-        lineChart.setData(ld);
+        LineDataSet dataSet = new LineDataSet(entries, "VADER Compound Score");
+        dataSet.setColor(Color.BLUE);
+        dataSet.setValueTextColor(Color.BLACK);
+        dataSet.setCircleColor(Color.BLUE);
+        dataSet.setDrawCircles(true);
+        dataSet.setDrawValues(true);
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
         lineChart.getDescription().setEnabled(false);
+        lineChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
+        lineChart.getAxisRight().setEnabled(false);
+        lineChart.getAxisLeft().setAxisMinimum(-1f);
+        lineChart.getAxisLeft().setAxisMaximum(1f);
+        lineChart.invalidate(); // refresh
     }
 
-    private void addPoint(float y) {
-        int x = counter.incrementAndGet();
-        entries.add(new Entry(x, y));
-        lineChart.getData().notifyDataChanged();
-        lineChart.notifyDataSetChanged();
-        lineChart.invalidate();
+    private void addPointToChart(float y) {
+        LineData data = lineChart.getData();
+        if (data != null) {
+            LineDataSet set = (LineDataSet) data.getDataSetByIndex(0);
+            if (set == null) {
+                set = new LineDataSet(null, "VADER Compound Score");
+                data.addDataSet(set);
+            }
+            data.addEntry(new Entry(set.getEntryCount(), y), 0);
+            data.notifyDataChanged();
+            lineChart.notifyDataSetChanged();
+            lineChart.setVisibleXRangeMaximum(10);
+            lineChart.moveViewToX(data.getEntryCount());
+        }
     }
 
     private void analyzeText(String text) {
-        txtResult.setText(R.string.analyzing);
-        ScoreRequest req = new ScoreRequest(text);
-        Call<SentimentResponse> call = RetrofitClient.getApi().score(req);
-        call.enqueue(new Callback<>() {
+        showLoading(true);
+        ScoreRequest request = new ScoreRequest(text);
+        Call<SentimentResponse> call = RetrofitClient.getApi().score(request);
+
+        call.enqueue(new Callback<SentimentResponse>() {
             @Override
             public void onResponse(@NonNull Call<SentimentResponse> call, @NonNull Response<SentimentResponse> response) {
+                showLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
                     SentimentResponse body = response.body();
                     if (body.vader != null && body.textblob != null) {
                         double compound = body.vader.compound;
-                        double tb = body.textblob.polarity;
-                        String res = String.format(Locale.US, "VADER: %.3f | TextBlob: %.3f", compound, tb);
-                        txtResult.setText(res);
-                        addPoint((float) compound);
+                        double polarity = body.textblob.polarity;
+                        String resultText = String.format(Locale.US, "VADER Compound: %.3f\nTextBlob Polarity: %.3f", compound, polarity);
+                        txtResult.setText(resultText);
+                        addPointToChart((float) compound);
                     } else {
-                        txtResult.setText("Incomplete server response");
+                        txtResult.setText("Incomplete data from server.");
                     }
                 } else {
                     txtResult.setText(getString(R.string.server_error, response.code()));
@@ -90,8 +123,19 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NonNull Call<SentimentResponse> call, @NonNull Throwable t) {
+                showLoading(false);
                 txtResult.setText(getString(R.string.network_error, t.getMessage()));
             }
         });
+    }
+
+    private void showLoading(boolean isLoading) {
+        if (isLoading) {
+            progressBar.setVisibility(View.VISIBLE);
+            btnAnalyze.setEnabled(false);
+        } else {
+            progressBar.setVisibility(View.GONE);
+            btnAnalyze.setEnabled(true);
+        }
     }
 }
