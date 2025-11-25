@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.sentivibe" />
+                  <option name="mobileSdkAppId" value="1:185874568596:android:debf2a8de4248488516b81" />
+                  <option name="projectId" value="sentivibeandroid" />
+                  <option name="projectNumber" value="185874568596" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
