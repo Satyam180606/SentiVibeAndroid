@@ -6,13 +6,9 @@ import java.util.Locale;
 
 /**
  * Contains the data models for API requests and responses.
- * Using @SerializedName allows for decoupling Java field names from JSON keys.
  */
 public class SentimentModels {
 
-    /**
-     * The request body sent to the /score endpoint.
-     */
     public static class ScoreRequest {
         @SerializedName("text")
         public final String text;
@@ -22,9 +18,6 @@ public class SentimentModels {
         }
     }
 
-    /**
-     * The root object of the response from the /score endpoint.
-     */
     public static class SentimentResponse {
         @SerializedName("vader")
         public Vader vader;
@@ -32,19 +25,21 @@ public class SentimentModels {
         @SerializedName("textblob")
         public TextBlob textblob;
 
+        // Added field for the new LLM analysis
+        @SerializedName("llm_analysis")
+        public String llmAnalysis;
+
         @NonNull
         @Override
         public String toString() {
             return "SentimentResponse{" +
                     "vader=" + vader +
                     ", textblob=" + textblob +
+                    ", llmAnalysis='" + llmAnalysis + '\'' +
                     '}';
         }
     }
 
-    /**
-     * VADER sentiment analysis scores.
-     */
     public static class Vader {
         @SerializedName("neg")
         public double neg;
@@ -67,9 +62,6 @@ public class SentimentModels {
         }
     }
 
-    /**
-     * TextBlob sentiment analysis scores.
-     */
     public static class TextBlob {
         @SerializedName("polarity")
         public double polarity;

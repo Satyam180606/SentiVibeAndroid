@@ -12,15 +12,17 @@ public class AnalysisResult {
     private String inputText;
     private double vaderCompound;
     private double textblobPolarity;
+    private String userId;
     private @ServerTimestamp Date timestamp;
 
     // Required empty public constructor for Firestore deserialization
     public AnalysisResult() {}
 
-    public AnalysisResult(String inputText, double vaderCompound, double textblobPolarity) {
+    public AnalysisResult(String inputText, double vaderCompound, double textblobPolarity, String userId) {
         this.inputText = inputText;
         this.vaderCompound = vaderCompound;
         this.textblobPolarity = textblobPolarity;
+        this.userId = userId;
     }
 
     // --- Getters and Setters for Firestore --- //
@@ -47,6 +49,14 @@ public class AnalysisResult {
 
     public void setTextblobPolarity(double textblobPolarity) {
         this.textblobPolarity = textblobPolarity;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public Date getTimestamp() {

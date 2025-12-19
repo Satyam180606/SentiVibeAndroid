@@ -10,4 +10,7 @@ import retrofit2.http.POST;
 public interface ApiService {
     @POST("score")
     Call<SentimentResponse> score(@Body ScoreRequest req);
+
+    @POST("fetch")
+    Call<FetchResponse> fetch(@Body FetchRequest req);
 }

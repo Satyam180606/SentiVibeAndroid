@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sentivibe.adapter.HistoryAdapter;
 import com.example.sentivibe.model.AnalysisResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -65,7 +66,14 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void loadHistory() {
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null) {
+            Log.e(TAG, "No user logged in.");
+            return;
+        }
+
         db.collection("analysis_history")
+                .whereEqualTo("userId", currentUserId)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(task -> {

@@ -20,4 +20,8 @@
         <item name="hintTextColor">@color/colorPrimary</item>
     </style>
 
+    <style name="Theme.SentiVibe.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.SentiVibe.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
 </resources>
