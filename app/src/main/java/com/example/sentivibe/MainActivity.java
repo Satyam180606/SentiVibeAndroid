@@ -79,6 +79,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
+        // INNOVATION FEATURE: Observe status messages from ViewModel
+        mainViewModel.getStatusMessage().observe(this, message -> {
+            if (message != null) {
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+
         setupChart();
         setupClickListeners();
         updateNavHeader();
@@ -166,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 addPointToChart((float) compound);
 
                 mainViewModel.saveResultToHistory(text, response);
-                Toast.makeText(this, "Analysis successful", Toast.LENGTH_SHORT).show();
+                // Note: The success toast is now handled via statusMessage in ViewModel
 
             } else {
                 // On failure, show an error message
